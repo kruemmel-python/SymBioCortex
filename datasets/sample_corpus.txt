@@ -1,0 +1,3 @@
+SymBioCortex verbindet Denken und Handeln.
+Das Feld reagiert auf Pulse der Konzepte.
+Agenten erkunden das Terrain neugierig.

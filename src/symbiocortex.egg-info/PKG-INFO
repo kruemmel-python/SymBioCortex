@@ -1,0 +1,97 @@
+Metadata-Version: 2.4
+Name: symbiocortex
+Version: 0.1.0
+Summary: Symbiose aus BioCortex und HPIO
+Author: SymBioCortex Team
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+Requires-Dist: streamlit
+Requires-Dist: networkx
+Requires-Dist: pandas
+Dynamic: license-file
+
+# SymBioCortex
+
+SymBioCortex ist ein experimentelles Python-3.12-Projekt, das ein bio-inspiriertes Gedächtnis (BioCortex) mit einem energie- bzw. feldbasierten Schwarm-Ökosystem (HPIO) koppelt. Beide Teilsysteme arbeiten zyklisch zusammen: Denken → Handeln → Rückkopplung. Das Projekt folgt dem Zen of Python mit Fokus auf Transparenz, Determinismus und Lesbarkeit.
+
+## Architekturüberblick
+
+```
++----------------------+      +------------------------+
+|      BioCortex       |      |          HPIO          |
+|----------------------|      |------------------------|
+| Tokenizer            |      | Φ-Feld (Diffusion)     |
+| Kneser-Ney LM        | ---> | Agenten-Schwarm        |
+| Myzel-Graph          |      | Puls-Injektion         |
+| Neuromodulatoren     | <--- | Feld-Feedback          |
+| Replay-Speicher      |      | Trails & Hotspots      |
++----------------------+      +------------------------+
+          |                               ^
+          v                               |
+        Puls-Events  ---->  Orchestrator  ---->  Feedback-Events
+```
+
+## Setup
+
+```bash
+cd symbiocortex
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+## Quickstart
+
+### CLI
+
+```bash
+symbio train --data datasets/sample_corpus.txt
+symbio generate --prompt "Die Architektur des Denkens" --max-new 64
+symbio run --prompt "Die Architektur des Denkens" --steps 400 --save-run runs/demo.json
+```
+
+### Streamlit
+
+```bash
+streamlit run apps/streamlit_app.py
+```
+
+Die App bietet drei Tabs:
+
+1. **Think** – Training, Generieren, Myzel-Graph-Visualisierung
+2. **Act** – Φ-Feld-Heatmap, Agentenpositionen, Trails
+3. **Symbiosis** – End-to-End-Demo: Prompt → Puls → Schwarm → Feedback
+
+## Projektstruktur
+
+```text
+symbiocortex/
+  README.md
+  LICENSE
+  pyproject.toml
+  src/symbio/
+    ...
+  apps/
+    cli.py
+    streamlit_app.py
+  tests/
+    ...
+```
+
+## Tests
+
+```bash
+pytest -q
+```
+
+## Daten & Läufe
+
+* `datasets/sample_corpus.txt` enthält kurze Beispieltexte zur schnellen Initialisierung.
+* Ergebnisse, Trails und Metriken können nach Läufen als JSON in `runs/` gespeichert werden.
+
+## Lizenz
+
+Siehe [LICENSE](LICENSE) für Lizenzinformationen.

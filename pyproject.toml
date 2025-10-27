@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "symbiocortex"
+version = "0.1.0"
+description = "Symbiose aus BioCortex und HPIO"
+authors = [{name = "SymBioCortex Team"}]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "streamlit",
+    "networkx",
+    "pandas",
+]
+
+[project.scripts]
+symbio = "symbio.apps.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

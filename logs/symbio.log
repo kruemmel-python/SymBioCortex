@@ -1,0 +1,2 @@
+2025-10-27 18:50:44 | INFO | symbio.apps.cli | BioCortex gespeichert in runs/model
+2025-10-27 18:51:08 | INFO | symbio.apps.cli | Episode beendet: {'events': 841, 'best_pos': (29, 32), 'best_val': 141.82986972425428}
