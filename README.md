@@ -36,6 +36,7 @@ pip install -e .
 symbio train --data datasets/sample_corpus.txt
 symbio generate --prompt "Die Architektur des Denkens" --max-new 64
 symbio run --prompt "Die Architektur des Denkens" --steps 400 --save-run runs/demo.json
+symbio autopoiesis --data datasets/sample_corpus.txt --steps 200 --max-sentences 3
 ```
 
 ### Streamlit

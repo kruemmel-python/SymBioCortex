@@ -36,6 +36,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--model-dir", default="runs/model")
     run.add_argument("--save-run", default="runs/last_run.json")
 
+    auto = sub.add_parser("autopoiesis", help="Generiere Sätze aus Feldreaktionen")
+    auto.add_argument("--data", nargs="+", required=True, help="Datensätze für das Denken")
+    auto.add_argument("--steps", type=int, default=200)
+    auto.add_argument("--threshold", type=float, default=0.6)
+    auto.add_argument("--max-sentences", type=int, default=5)
+    auto.add_argument("--model-dir", default="runs/model")
+    auto.add_argument("--save", help="Optionaler Pfad für JSON-Ergebnis")
+
     return parser
 
 
@@ -72,6 +80,31 @@ def cmd_run(args: argparse.Namespace, config: SymbioConfig) -> None:
     LOGGER.info("Episode beendet: %s", summary)
 
 
+def cmd_autopoiesis(args: argparse.Namespace, config: SymbioConfig) -> None:
+    configure_logging()
+    texts = load_texts(args.data)
+    model_dir = Path(args.model_dir)
+    if model_dir.exists():
+        cortex = BioCortex.load(model_dir, config=config.bio)
+        cortex.partial_fit(texts)
+    else:
+        cortex = BioCortex(config=config.bio)
+        cortex.partial_fit(texts)
+    hpio = HPIO(field_config=config.field, swarm_config=config.swarm)
+    orchestrator = Orchestrator(cortex, hpio)
+    result = orchestrator.autopoietic_cycle(
+        texts,
+        steps=args.steps,
+        threshold=args.threshold,
+        max_sentences=args.max_sentences,
+    )
+    output = json.dumps(result, indent=2, ensure_ascii=False)
+    if args.save:
+        Path(args.save).write_text(output, encoding="utf-8")
+        LOGGER.info("Autopoiesis-Ergebnis gespeichert in %s", args.save)
+    print(output)
+
+
 def main(argv: Sequence[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -83,6 +116,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             cmd_generate(args, config)
         case "run":
             cmd_run(args, config)
+        case "autopoiesis":
+            cmd_autopoiesis(args, config)
         case _:
             parser.error(f"Unbekannter Befehl: {args.command}")
 
