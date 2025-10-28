@@ -11,6 +11,7 @@ class BioConfig:
     discount: float = 0.75
     replay_capacity: int = 64
     concept_top_k: int = 8
+    neo_rate: float = 0.25
 
 
 @dataclass(slots=True)

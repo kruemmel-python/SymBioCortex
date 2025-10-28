@@ -128,7 +128,7 @@ class Swarm:
                 position=(int(agent.position[0]), int(agent.position[1])),
                 amplitude=agent.battery,
                 spread=sigma,
-                tag=agent.role,
+                tag=f"agent:{agent.role}",
             )
             self.field.inject_gaussian(pulse)
             trails.append(((agent.position[0], agent.position[1]), agent.role))

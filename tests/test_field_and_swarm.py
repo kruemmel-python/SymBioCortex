@@ -16,6 +16,9 @@ def test_field_injection_and_relax():
     field.relax(alpha=0.2)
     field.evaporate(0.1)
     assert max(max(row) for row in field.phi) < 1.5
+    hotspots = field.hotspots(threshold=0.2)
+    assert hotspots
+    assert any("test" in spot.tags for spot in hotspots)
 
 
 def test_swarm_step_metrics():
