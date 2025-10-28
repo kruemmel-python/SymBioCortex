@@ -2,23 +2,26 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable
 
 from .biocortex import BioCortex
 from .field import Field
+from .types import Hotspot
 
 
-def detect_hotspots(field: Field, threshold: float = 0.6) -> list[tuple[int, int, float]]:
+def detect_hotspots(field: Field, threshold: float = 0.6) -> list[Hotspot]:
     """Ermittle Hotspots im Feld."""
 
     return field.hotspots(threshold)
 
 
-def apply_feedback(biocortex: BioCortex, hotspots: Iterable[tuple[int, int, float]]) -> dict:
+def apply_feedback(biocortex: BioCortex, hotspots: Iterable[Hotspot]) -> dict:
     """Verstärkt Myzel-Kanten basierend auf Hotspots."""
 
     reinforcements = []
-    for y, x, value in hotspots:
+    for hotspot in hotspots:
+        y, x = hotspot.position
+        value = hotspot.value
         edges = sorted(
             biocortex.graph.pheromones.items(),
             key=lambda item: item[1],

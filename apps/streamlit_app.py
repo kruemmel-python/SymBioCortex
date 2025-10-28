@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from symbio.biocortex import BioCortex
+from symbio.coach.rerank import RankWeights, rerank_candidates
 from symbio.config import DEFAULT_CONFIG
 from symbio.feedback import detect_hotspots
 from symbio.hpio import HPIO
@@ -45,6 +46,18 @@ def _bootstrap_corpus() -> list[str]:
     return [fallback]
 
 
+def _ensure_corpus_path() -> Path:
+    """Bestimme den zu verwendenden Korpuspfad."""
+
+    candidate = Path("datasets") / "sample_corpus.txt"
+    if candidate.exists():
+        return candidate
+    fallback = Path("runs") / "streamlit_corpus.txt"
+    fallback.parent.mkdir(parents=True, exist_ok=True)
+    fallback.write_text("\n".join(_bootstrap_corpus()), encoding="utf-8")
+    return fallback
+
+
 st.title("SymBioCortex")
 config = DEFAULT_CONFIG
 
@@ -63,10 +76,59 @@ think_tab, act_tab, sym_tab = st.tabs(["Think", "Act", "Symbiosis"])
 with think_tab:
     st.header("BioCortex")
     prompt = st.text_input("Prompt", "Symbiose des Denkens")
+    neo_rate = st.slider("Neologismen-Rate", 0.0, 1.0, float(cortex.config.neo_rate), 0.05)
+    neo_low, neo_high = st.slider("Neologismen-Zielband", 0.0, 1.0, (0.10, 0.35), 0.01)
+    col_flu, col_sem, col_form, col_neo = st.columns(4)
+    w_flu = col_flu.slider("Gewicht Fluency", 0.0, 1.0, 0.40, 0.05)
+    w_sem = col_sem.slider("Gewicht Semantik", 0.0, 1.0, 0.30, 0.05)
+    w_form = col_form.slider("Gewicht Form", 0.0, 1.0, 0.20, 0.05)
+    w_neo = col_neo.slider("Gewicht Neologie", 0.0, 1.0, 0.10, 0.05)
+    st.caption(f"Summe der Gewichte: {w_flu + w_sem + w_form + w_neo:.2f}")
+    n_candidates = st.slider("Anzahl Kandidaten", 1, 16, 8)
+    snap = st.checkbox("Sanftes Snapping", value=False)
+    corpus_path = _ensure_corpus_path()
     ready = bool(cortex.tokenizer.vocab)
     if st.button("Generate", key="generate", disabled=not ready):
-        output = cortex.generate(prompt, max_new_tokens=48)
-        st.write(output)
+        candidates: list[str] = []
+        for _ in range(n_candidates):
+            candidates.append(cortex.generate(prompt, max_new_tokens=48, neo_rate=neo_rate))
+        weights = RankWeights(
+            w_fluency=w_flu,
+            w_semantic=w_sem,
+            w_form=w_form,
+            w_neology=w_neo,
+            neo_target_low=neo_low,
+            neo_target_high=neo_high,
+        )
+        ranked = rerank_candidates(
+            prompt=prompt,
+            candidates=candidates,
+            kn_model=cortex.lm,
+            tokenizer=cortex.tokenizer,
+            corpus_path=str(corpus_path),
+            weights=weights,
+            snap=snap,
+        )
+        best = ranked[0]
+        st.subheader("Top-Ausgabe")
+        st.write(best.text)
+        st.write(
+            f"Scores – Fluency: {best.scores['fluency']:.3f}, "
+            f"Semantik: {best.scores['semantic']:.3f}, "
+            f"Form: {best.scores['form']:.3f}, "
+            f"Neologie: {best.scores['neo_ratio']:.3f} (adjusted {best.scores['neo_adj']:.3f})"
+        )
+        df = pd.DataFrame(
+            [
+                {
+                    "total": r.total,
+                    **r.scores,
+                    "text": r.text,
+                }
+                for r in ranked
+            ]
+        )
+        st.dataframe(df)
     if not ready:
         st.info("Bitte zunächst ein Trainingskorpus laden, um Texte zu generieren.")
     graph_edges = list(cortex.graph.weights.items())
