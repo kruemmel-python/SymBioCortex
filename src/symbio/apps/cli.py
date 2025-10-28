@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--prompt", required=True)
     generate.add_argument("--max-new", type=int, default=64)
     generate.add_argument("--model-dir", default="runs/model")
+    generate.add_argument("--neo-rate", type=float, default=None, help="Anteil neuer Wörter [0-1]")
 
     run = sub.add_parser("run", help="Führe eine komplette Episode aus")
     run.add_argument("--prompt", required=True)
@@ -66,7 +67,7 @@ def cmd_train(args: argparse.Namespace, config: SymbioConfig) -> None:
 def cmd_generate(args: argparse.Namespace, config: SymbioConfig) -> None:
     configure_logging()
     cortex = BioCortex.load(args.model_dir, config=config.bio)
-    text = cortex.generate(args.prompt, max_new_tokens=args.max_new)
+    text = cortex.generate(args.prompt, max_new_tokens=args.max_new, neo_rate=args.neo_rate)
     print(text)
 
 

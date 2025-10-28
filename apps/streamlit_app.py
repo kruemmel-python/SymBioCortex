@@ -63,10 +63,14 @@ think_tab, act_tab, sym_tab = st.tabs(["Think", "Act", "Symbiosis"])
 with think_tab:
     st.header("BioCortex")
     prompt = st.text_input("Prompt", "Symbiose des Denkens")
+    neo_rate = st.slider("Neologismen-Rate", 0.0, 1.0, float(cortex.config.neo_rate), 0.05)
     ready = bool(cortex.tokenizer.vocab)
     if st.button("Generate", key="generate", disabled=not ready):
-        output = cortex.generate(prompt, max_new_tokens=48)
-        st.write(output)
+        output = cortex.generate(prompt, max_new_tokens=48, neo_rate=neo_rate)
+        stats = cortex.last_neology
+        if stats:
+            st.write(f"Neologismen: {stats.novel}/{stats.total} ({stats.ratio:.1%})")
+        st.write("Output:", output)
     if not ready:
         st.info("Bitte zunächst ein Trainingskorpus laden, um Texte zu generieren.")
     graph_edges = list(cortex.graph.weights.items())

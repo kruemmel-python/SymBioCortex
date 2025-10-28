@@ -34,7 +34,7 @@ pip install -e .
 
 ```bash
 symbio train --data datasets/sample_corpus.txt
-symbio generate --prompt "Die Architektur des Denkens" --max-new 64
+symbio generate --prompt "Die Architektur des Denkens" --max-new 64 --neo-rate 0.25
 symbio run --prompt "Die Architektur des Denkens" --steps 400 --save-run runs/demo.json
 symbio autopoiesis --data datasets/sample_corpus.txt --steps 200 --max-sentences 3
 ```
@@ -50,6 +50,9 @@ Die App bietet drei Tabs:
 1. **Think** – Training, Generieren, Myzel-Graph-Visualisierung
 2. **Act** – Φ-Feld-Heatmap, Agentenpositionen, Trails
 3. **Symbiosis** – End-to-End-Demo: Prompt → Puls → Schwarm → Feedback
+
+Im **Think**-Tab steuert ein Slider die "Neologismen-Rate". Nach jeder Generierung
+werden live die Neologismus-Quote und der erzeugte Text angezeigt.
 
 ## Projektstruktur
 
