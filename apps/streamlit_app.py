@@ -104,7 +104,6 @@ with think_tab:
             prompt=prompt,
             candidates=candidates,
             kn_model=cortex.lm,
-            tokenizer=cortex.tokenizer,
             corpus_path=str(corpus_path),
             weights=weights,
             snap=snap,
