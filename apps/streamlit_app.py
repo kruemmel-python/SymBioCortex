@@ -150,7 +150,15 @@ with act_tab:
     if st.button("Swarm Step", key="swarm_step"):
         metrics = hpio.step()
         hpio.relax_and_evaporate()
+        cortex.update_hpio_status(metrics)
         st.write(metrics)
+    if cortex.hpio_status:
+        st.subheader("Neuromodulation")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Dopamin", f"{cortex.neuromod.dopamine:.2f}")
+        col2.metric("Gamma Bias", f"{cortex.config.gamma_bias:.2f}")
+        field_mean = cortex.hpio_status.get("field_mean", 0.0)
+        col3.metric("Φ-Mittel", f"{field_mean:.3f}")
 
 with sym_tab:
     st.header("Symbiotische Episode")

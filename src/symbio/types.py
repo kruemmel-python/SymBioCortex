@@ -66,7 +66,7 @@ class Hotspot:
 class Event(NamedTuple):
     """Ein Event im symbiotischen Zyklus."""
 
-    kind: Literal["pulse", "feedback", "tick", "decay"]
+    kind: Literal["pulse", "feedback", "tick", "decay", "hpio_report"]
     payload: Any
 
 

@@ -38,12 +38,16 @@ class Orchestrator:
                 metrics = self.hpio.step()
                 self.hpio.relax_and_evaporate()
                 hotspots = detect_hotspots(self.hpio.field)
+                new_events = [make_event("hpio_report", {"metrics": metrics})]
                 if hotspots:
-                    return [make_event("feedback", {"hotspots": hotspots, "metrics": metrics})]
-                return []
+                    new_events.append(make_event("feedback", {"hotspots": hotspots, "metrics": metrics}))
+                return new_events
             case Event(kind="feedback", payload=data):
                 result = apply_feedback(self.biocortex, data.get("hotspots", []))
                 logger.debug("Feedback applied: %s", result)
+                return []
+            case Event(kind="hpio_report", payload=data):
+                self.biocortex.update_hpio_status(data.get("metrics", {}))
                 return []
             case Event(kind="decay", payload=rate):
                 self.biocortex.graph.evaporate(rate)
@@ -70,6 +74,7 @@ class Orchestrator:
             "events": len(self.event_log),
             "best_pos": self.hpio.best_pos,
             "best_val": self.hpio.best_val,
+            "hpio_status": self.biocortex.hpio_status,
         }
 
     def autopoietic_cycle(

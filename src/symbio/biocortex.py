@@ -41,11 +41,14 @@ class BioCortex:
     corpus_lexicon: set[str] = field(default_factory=set)
     morph_generator: Callable[[random.Random], str] = field(init=False)
     last_neology: NeologyStats | None = None
+    hpio_status: dict[str, float] = field(default_factory=dict)
+    base_gamma_bias: float = field(init=False)
 
     def __post_init__(self) -> None:
         self.lm = KneserNeyLM(order=self.config.ngram_order, discount=self.config.discount)
         self.replay = ReplayBuffer(capacity=self.config.replay_capacity)
         self.morph_generator = morph_wrapper(self._base_neologism)
+        self.base_gamma_bias = self.config.gamma_bias
 
     def partial_fit(self, texts: Sequence[str]) -> None:
         if not texts:
@@ -87,7 +90,8 @@ class BioCortex:
                 if cumulative >= nucleus_p:
                     break
             ids, weights = zip(*nucleus)
-            scaled = [prob * self.neuromod.dopamine for prob in weights]
+            biased = [max(prob, 1e-12) ** self.config.gamma_bias for prob in weights]
+            scaled = [value * self.neuromod.dopamine for value in biased]
             distribution = softmax(scaled, temperature=temperature)
             p_vocab = np.asarray(distribution, dtype=float)
             idx, is_neologism = sample_mixed(p_vocab, neo_rate_value, np_rng)
@@ -115,6 +119,30 @@ class BioCortex:
             prompt,
         )
         return text
+
+    def update_hpio_status(self, metrics: dict[str, float]) -> None:
+        """Aktualisiert neuromodulatorische Parameter anhand von HPIO-Metriken."""
+
+        if not metrics:
+            return
+        self.hpio_status = dict(metrics)
+        best_val = float(metrics.get("best_val", float("-inf")))
+        field_mean = float(metrics.get("field_mean", 0.0))
+        threshold = self.config.hpio_best_val_threshold
+
+        dopamine_delta = 0.0
+        if best_val > threshold:
+            dopamine_delta = min(1.0, (best_val - threshold) * self.config.hpio_coupling_gain)
+        elif field_mean > 0.5:
+            dopamine_delta = 0.5 * self.config.hpio_coupling_gain
+
+        if dopamine_delta:
+            self.neuromod.apply_reward(dopamine_delta)
+        self.neuromod.decay(rate=0.02)
+
+        base_bias = self.base_gamma_bias
+        adjusted_bias = base_bias + max(0.0, field_mean) * 0.5
+        self.config.gamma_bias = max(0.5, min(3.0, adjusted_bias))
 
     def _allowed_characters(self) -> set[str]:
         chars = {

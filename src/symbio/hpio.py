@@ -49,7 +49,18 @@ class HPIO:
         if best_pos and best_val > self.best_val:
             self.best_pos = best_pos
             self.best_val = best_val
-        metrics.update({"best_pos": self.best_pos, "best_val": self.best_val})
+        total = 0.0
+        count = 0
+        for row in self.field.phi:
+            for value in row:
+                total += value
+                count += 1
+        field_mean = total / count if count else 0.0
+        metrics.update({
+            "best_pos": self.best_pos,
+            "best_val": self.best_val,
+            "field_mean": field_mean,
+        })
         return metrics
 
     def relax_and_evaporate(self) -> None:

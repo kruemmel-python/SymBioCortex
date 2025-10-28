@@ -12,6 +12,9 @@ class BioConfig:
     replay_capacity: int = 64
     concept_top_k: int = 8
     neo_rate: float = 0.25
+    gamma_bias: float = 1.4
+    hpio_coupling_gain: float = 0.1
+    hpio_best_val_threshold: float = 0.01
 
 
 @dataclass(slots=True)

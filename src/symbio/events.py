@@ -25,6 +25,8 @@ def make_event(kind: Event.kind, payload: Any) -> Event:
         raise ValueError("pulse events require a payload")
     if kind == "tick" and not isinstance(payload, dict | None.__class__):
         raise ValueError("tick payload must be a dict or None")
+    if kind == "hpio_report" and not isinstance(payload, dict):
+        raise ValueError("hpio_report payload must be a dict")
     return Event(kind=kind, payload=payload)
 
 
@@ -48,6 +50,8 @@ def debug_match(event: Event) -> str:
             return f"tick:{payload!r}"
         case Event(kind="decay", payload=payload):
             return f"decay:{payload!r}"
+        case Event(kind="hpio_report", payload=payload):
+            return f"hpio_report:{payload!r}"
         case _:
             return "unknown"
 
